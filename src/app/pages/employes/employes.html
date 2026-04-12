@@ -1,0 +1,180 @@
+<div class="flex flex-col gap-6 p-6">
+  <div class="flex items-center justify-between">
+    <label hlmLabel class="relative w-64">
+      <ng-icon
+        hlm
+        name="tablerSearch"
+        class="text-muted-foreground pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2"
+        size="sm"
+      />
+      <input
+        hlmInput
+        name="search"
+        placeholder="Buscar membros..."
+        class="w-full pl-8"
+        [(ngModel)]="searchTerm"
+        (keydown.enter)="applySearch()"
+      />
+    </label>
+
+    <button hlmBtn type="button" (click)="openCreateDialog()">
+      <ng-icon hlm name="tablerPlus" class="sm:mr-2" size="sm" />
+      <span class="hidden sm:inline">Novo membro</span>
+    </button>
+  </div>
+
+  <div class="overflow-hidden rounded-md border">
+    <div hlmTableContainer>
+      <table hlmTable>
+        <thead hlmTHead class="bg-muted/50">
+          <tr hlmTr>
+            <th hlmTh>Nome</th>
+            <th hlmTh>Email</th>
+            <th hlmTh>Cargo</th>
+            <th hlmTh class="text-right">Ações</th>
+          </tr>
+        </thead>
+
+        <tbody hlmTBody>
+          @if (loading) {
+            <tr hlmTr>
+              <td hlmTd class="h-24 text-center text-muted-foreground" colspan="4">
+                <div class="flex justify-center">
+                  <button hlmBtn type="button" variant="outline" size="sm" disabled>
+                    <hlm-spinner class="size-4" aria-label="Carregando membros" />
+                    <span class="sr-only">Carregando membros</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @else {
+            @for (user of items; track user.id) {
+              <tr hlmTr>
+                <td hlmTd class="font-medium">{{ user.name }}</td>
+                <td hlmTd>{{ user.email }}</td>
+                <td hlmTd>{{ formatRole(user.role) }}</td>
+                <td hlmTd>
+                  <div class="flex justify-end gap-2">
+                    <button
+                      hlmBtn
+                      type="button"
+                      size="icon-sm"
+                      variant="ghost"
+                      aria-label="Editar membro"
+                      (click)="openEditDialog(user)"
+                    >
+                      <ng-icon hlm name="tablerEdit" size="sm" />
+                    </button>
+
+                    <hlm-alert-dialog>
+                      <button
+                        hlmBtn
+                        hlmAlertDialogTrigger
+                        type="button"
+                        size="icon-sm"
+                        variant="ghost"
+                        class="text-destructive hover:text-destructive"
+                        aria-label="Excluir membro"
+                        [disabled]="deletingId === user.id"
+                      >
+                        @if (deletingId === user.id) {
+                          <hlm-spinner class="size-4" aria-label="Excluindo membro" />
+                        } @else {
+                          <ng-icon hlm name="tablerTrash" size="sm" />
+                        }
+                      </button>
+
+                      <hlm-alert-dialog-content *hlmAlertDialogPortal="let ctx">
+                        <hlm-alert-dialog-header>
+                          <h2 hlmAlertDialogTitle>Excluir membro?</h2>
+                          <p hlmAlertDialogDescription>
+                            Esta ação não pode ser desfeita. O membro "{{ user.name }}" será removido permanentemente.
+                          </p>
+                        </hlm-alert-dialog-header>
+
+                        <hlm-alert-dialog-footer>
+                          <button hlmAlertDialogCancel (click)="ctx.close()">Cancelar</button>
+                          <button
+                            hlmAlertDialogAction
+                            variant="destructive"
+                            (click)="ctx.close(); deleteEmploye(user)"
+                          >
+                            Excluir
+                          </button>
+                        </hlm-alert-dialog-footer>
+                      </hlm-alert-dialog-content>
+                    </hlm-alert-dialog>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr hlmTr>
+                <td hlmTd class="h-24 text-center text-muted-foreground" colspan="4">
+                  Nenhum membro encontrado.
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <span class="text-muted-foreground text-sm">
+      {{ numberOfElements }} membro(s) encontrado(s)
+    </span>
+
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+      <div class="flex items-center gap-2">
+        <span hlmLabel>Por página</span>
+
+        <hlm-select
+          class="inline-block"
+          [ngModel]="filters.size"
+          (ngModelChange)="onPageSizeChange($event)"
+        >
+          <hlm-select-trigger size="sm" class="inline-flex h-8 w-fit min-w-[88px]">
+            <hlm-select-value placeholder="{{ pageSizes[0] }}" />
+          </hlm-select-trigger>
+
+          <hlm-select-content *hlmSelectPortal>
+            <hlm-select-group>
+              @for (size of pageSizes; track size) {
+                <hlm-select-item [value]="size">{{ size }}</hlm-select-item>
+              }
+            </hlm-select-group>
+          </hlm-select-content>
+        </hlm-select>
+      </div>
+
+      <span hlmLabel>
+        Página {{ currentPage }} de {{ totalPages || 0 }}
+      </span>
+
+      <div class="flex items-center gap-2">
+        <button
+          hlmBtn
+          type="button"
+          size="sm"
+          variant="outline"
+          [disabled]="!canGoToPreviousPage || loading"
+          (click)="goToPreviousPage()"
+        >
+          Anterior
+        </button>
+
+        <button
+          hlmBtn
+          type="button"
+          size="sm"
+          variant="outline"
+          [disabled]="!canGoToNextPage || loading"
+          (click)="goToNextPage()"
+        >
+          Próxima
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
