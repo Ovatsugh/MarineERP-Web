@@ -62,7 +62,7 @@ import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 		}),
 	],
 	template: `
-		<div hlmSidebarWrapper>
+		<div hlmSidebarWrapper class="h-svh overflow-hidden">
 			<hlm-sidebar>
 				<div hlmSidebarHeader class="border-b">
 					<ul hlmSidebarMenu>
