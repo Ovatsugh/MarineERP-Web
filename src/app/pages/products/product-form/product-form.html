@@ -1,0 +1,167 @@
+<hlm-dialog-header>
+  <h3 class="pb-8" hlmDialogTitle>
+    {{ isEditing ? 'Editar produto' : 'Novo produto' }}
+  </h3>
+
+  <!-- <p hlmDialogDescription class="max-w-prose text-sm sm:text-base">
+    {{ isEditing
+      ? 'Atualize os dados do produto selecionado.'
+      : 'Preencha os campos abaixo para cadastrar um novo produto.' }}
+  </p> -->
+</hlm-dialog-header>
+
+@if (loadingData) {
+  <div class="flex min-h-56 items-center justify-center">
+    <button hlmBtn type="button" variant="outline" size="sm" disabled>
+      <hlm-spinner class="size-4" aria-label="Carregando produto" />
+      <span class="ml-2">Carregando produto...</span>
+    </button>
+  </div>
+} @else {
+  <form #productForm="ngForm" class="grid gap-3" (ngSubmit)="submit(productForm)">
+    <div class="grid gap-2">
+      <label hlmLabel for="name">Nome</label>
+      <input
+        hlmInput
+        id="name"
+        name="name"
+        required
+        minlength="2"
+        [disabled]="saving"
+        [(ngModel)]="dados.name"
+      />
+
+      <div class="min-h-0">
+        @if (productForm.controls['name']?.errors?.['required'] && productForm.controls['name']?.touched) {
+          <p class="text-destructive text-xs leading-5">Informe o nome do produto.</p>
+        } @else if (productForm.controls['name']?.errors?.['minlength'] && productForm.controls['name']?.touched) {
+          <p class="text-destructive text-xs leading-5">O nome deve ter pelo menos 2 caracteres.</p>
+        }
+      </div>
+    </div>
+
+    <div class="grid gap-3 sm:grid-cols-2">
+      <div class="grid content-start gap-2">
+        <label hlmLabel for="bikeModel">Modelo da bike</label>
+        <input
+          hlmInput
+          id="bikeModel"
+          name="bikeModel"
+          required
+          minlength="2"
+          [disabled]="saving"
+          [(ngModel)]="dados.bikeModel"
+        />
+
+        <div class="min-h-0">
+          @if (productForm.controls['bikeModel']?.errors?.['required'] && productForm.controls['bikeModel']?.touched) {
+            <p class="text-destructive text-xs leading-5">Informe o modelo da bike.</p>
+          } @else if (productForm.controls['bikeModel']?.errors?.['minlength'] && productForm.controls['bikeModel']?.touched) {
+            <p class="text-destructive text-xs leading-5">O modelo deve ter pelo menos 2 caracteres.</p>
+          }
+        </div>
+      </div>
+
+      <div class="grid content-start gap-2">
+        <label hlmLabel for="code">Código</label>
+        <input
+          hlmInput
+          id="code"
+          name="code"
+          minlength="2"
+          [disabled]="saving"
+          [(ngModel)]="dados.code"
+        />
+
+        <div class="min-h-0">
+          @if (productForm.controls['code']?.errors?.['minlength'] && productForm.controls['code']?.touched) {
+            <p class="text-destructive text-xs leading-5">O código deve ter pelo menos 2 caracteres.</p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="grid gap-3 sm:grid-cols-2">
+      <div class="grid content-start gap-2">
+        <label hlmLabel for="price">Preço</label>
+        <input
+          hlmInput
+          id="price"
+          name="price"
+          type="text"
+          inputmode="decimal"
+          placeholder="0,00"
+          [mask]="priceMask"
+          thousandSeparator="."
+          decimalMarker=","
+          [dropSpecialCharacters]="false"
+          [required]="true"
+          [disabled]="saving"
+          [(ngModel)]="dados.price"
+        />
+
+        <div class="min-h-0">
+          @if (productForm.controls['price']?.errors?.['required'] && productForm.controls['price']?.touched) {
+            <p class="text-destructive text-xs leading-5">Informe o preço do produto.</p>
+          }
+        </div>
+      </div>
+
+      <div class="grid content-start gap-2">
+        <label hlmLabel for="stock_quantity">Estoque</label>
+        <input
+          hlmInput
+          id="stock_quantity"
+          name="stock_quantity"
+          type="number"
+          min="0"
+          step="1"
+          required
+          [disabled]="saving"
+          [(ngModel)]="dados.stock_quantity"
+        />
+
+        <div class="min-h-0">
+          @if (productForm.controls['stock_quantity']?.errors?.['required'] && productForm.controls['stock_quantity']?.touched) {
+            <p class="text-destructive text-xs leading-5">Informe a quantidade em estoque.</p>
+          } @else if (productForm.controls['stock_quantity']?.errors?.['min'] && productForm.controls['stock_quantity']?.touched) {
+            <p class="text-destructive text-xs leading-5">Informe um estoque maior ou igual a zero.</p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="grid gap-2">
+      <label hlmLabel for="description">Descrição</label>
+      <textarea
+        id="description"
+        name="description"
+        rows="3"
+        [disabled]="saving"
+        [(ngModel)]="dados.description"
+        class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-20 w-full rounded-md border px-3 py-2 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50"
+        placeholder="Detalhes opcionais sobre o produto"
+      ></textarea>
+    </div>
+
+    <hlm-dialog-footer class="pt-1">
+      <button
+        hlmBtn
+        type="button"
+        variant="outline"
+        class="w-full sm:w-auto"
+        [disabled]="saving"
+        (click)="close()"
+      >
+        Cancelar
+      </button>
+
+      <button hlmBtn type="submit" class="w-full sm:w-auto" [disabled]="saving">
+        @if (saving) {
+          <hlm-spinner class="mr-2 size-4" aria-label="Salvando produto" />
+        }
+        {{ saving ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Cadastrar produto' }}
+      </button>
+    </hlm-dialog-footer>
+  </form>
+}
