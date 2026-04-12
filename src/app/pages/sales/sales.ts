@@ -1,13 +1,15 @@
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { tablerSearch, tablerTrash } from '@ng-icons/tabler-icons';
+import { tablerMinus, tablerPlus, tablerSearch, tablerTrash } from '@ng-icons/tabler-icons';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmIcon } from '@spartan-ng/helm/icon';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
+import { HlmScrollArea } from '@spartan-ng/helm/scroll-area';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { NgScrollbar } from 'ngx-scrollbar';
 import { CrudService } from '../../services/crud.service';
 import { CustomerResponse } from '../../types/customer.types';
 import { ProductResponse } from '../../types/product.types';
@@ -20,8 +22,8 @@ interface CartItem {
 
 @Component({
   selector: 'app-sales',
-  imports: [HlmButtonImports, HlmInputImports, HlmSpinner, HlmSelectImports, FormsModule, NgIcon, HlmIcon, HlmLabel],
-  providers: [provideIcons({ tablerSearch, tablerTrash }), CrudService],
+  imports: [HlmButtonImports, HlmInputImports, HlmSpinner, HlmSelectImports, FormsModule, NgIcon, HlmIcon, HlmLabel, NgScrollbar, HlmScrollArea],
+  providers: [provideIcons({ tablerSearch, tablerTrash, tablerMinus, tablerPlus }), CrudService],
   templateUrl: './sales.html',
   styleUrl: './sales.css',
 })
@@ -112,12 +114,37 @@ export class Sales implements OnInit {
     this.cart = this.cart.filter(i => i.productId !== productId);
   }
 
+  incrementItem(productId: string): void {
+    const item = this.cart.find(i => i.productId === productId);
+    if (item) item.quantity++;
+  }
+
+  decrementItem(productId: string): void {
+    const item = this.cart.find(i => i.productId === productId);
+    if (!item) return;
+    if (item.quantity > 1) {
+      item.quantity--;
+    } else {
+      this.removeFromCart(productId);
+    }
+  }
+
+  setItemQuantity(productId: string, value: number): void {
+    const qty = Math.max(1, Math.floor(Number(value) || 1));
+    const item = this.cart.find(i => i.productId === productId);
+    if (item) item.quantity = qty;
+  }
+
   getCartQuantity(productId: string): number {
     return this.cart.find(i => i.productId === productId)?.quantity ?? 0;
   }
 
   getProductName(productId: string): string {
     return this.productCache.get(productId)?.name ?? '';
+  }
+
+  getProductCode(productId: string): string | undefined {
+    return this.productCache.get(productId)?.code;
   }
 
   getProductPrice(productId: string): number {

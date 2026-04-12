@@ -9,7 +9,7 @@
   <div class="flex h-full gap-0">
 
     <!-- Catálogo de produtos -->
-    <div class="flex flex-1 flex-col gap-4 overflow-hidden p-6">
+    <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-6">
       <label hlmLabel class="relative w-full max-w-sm">
         <ng-icon
           hlm
@@ -27,52 +27,50 @@
       </label>
 
       <!-- Grid -->
-      <div class="relative">
+      <div class="relative min-h-0 flex-1">
         @if (loadingProducts) {
           <div class="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-background/60">
             <hlm-spinner class="size-6" aria-label="Carregando produtos" />
           </div>
         }
 
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          @for (product of filteredProducts; track product.id) {
-            <div class="flex flex-col overflow-hidden rounded-lg border transition-shadow hover:shadow-md">
-              <img
-                src="https://i.imgur.com/9jJHW6p.jpeg"
-                [alt]="product.name"
-                class="h-32 w-full object-cover"
-              />
+        <ng-scrollbar hlm appearance="compact" class="h-full">
+          <div class="grid grid-cols-2 gap-3 p-1 pr-6 sm:grid-cols-3 lg:grid-cols-4">
+            @for (product of filteredProducts; track product.id) {
+              <div class="flex flex-col overflow-hidden rounded-lg border transition-shadow hover:shadow-md">
+                <img
+                  src="https://i.imgur.com/9jJHW6p.jpeg"
+                  [alt]="product.name"
+                  class="h-32 w-full object-cover"
+                />
 
-              <div class="flex flex-1 flex-col gap-0.5 p-3">
-                <p class="text-sm font-medium leading-tight">{{ product.name }}</p>
-                <p class="text-muted-foreground text-xs">{{ product.bikeModel }}</p>
-                <p class="mt-1 text-sm font-semibold">{{ formatCurrency(product.price) }}</p>
-                <p class="text-muted-foreground text-xs">Estoque: {{ product.stock_quantity }}</p>
-              </div>
+                <div class="flex flex-1 flex-col gap-0.5 p-3">
+                  <p class="text-sm font-medium leading-tight">{{ product.name }}</p>
+                  <p class="text-muted-foreground text-xs">{{ product.bikeModel }}</p>
+                  <p class="mt-1 text-sm font-semibold">{{ formatCurrency(product.price) }}</p>
+                  <p class="text-muted-foreground text-xs">Estoque: {{ product.stock_quantity }}</p>
+                </div>
 
-              <div class="p-3 pt-0">
-                <button
-                  hlmBtn
-                  type="button"
-                  size="sm"
-                  class="w-full"
-                  [disabled]="saving"
-                  (click)="addToCart(product)"
-                >
-                  @if (getCartQuantity(product.id) > 0) {
-                    +1 &nbsp;·&nbsp; {{ getCartQuantity(product.id) }} no carrinho
-                  } @else {
+                <div class="p-3 pt-0">
+                  <button
+                    hlmBtn
+                    type="button"
+                    size="sm"
+                    class="w-full"
+                    [disabled]="saving"
+                    (click)="addToCart(product)"
+                  >
                     Adicionar
-                  }
-                </button>
+                  </button>
+                </div>
               </div>
-            </div>
-          } @empty {
-            <p class="col-span-full py-16 text-center text-sm text-muted-foreground">
-              Nenhum produto encontrado.
-            </p>
-          }
-        </div>
+            } @empty {
+              <p class="col-span-full py-16 text-center text-sm text-muted-foreground">
+                Nenhum produto encontrado.
+              </p>
+            }
+          </div>
+        </ng-scrollbar>
       </div>
 
       <!-- Paginação -->
@@ -131,11 +129,11 @@
     </div>
 
     <!-- Painel do carrinho -->
-    <div class="flex w-72 flex-col gap-4 border-l bg-muted/20 p-4">
+    <div class="flex min-h-0 w-72 flex-col gap-4 border-l bg-muted/20 p-4">
       <h2 class="text-base font-semibold">Carrinho</h2>
 
       <div class="grid gap-2">
-        <label hlmLabel for="customerId">Cliente</label>
+        <!-- <label hlmLabel for="customerId">Cliente</label> -->
         <select
           id="customerId"
           name="customerId"
@@ -154,31 +152,80 @@
       </div>
 
       <!-- Itens no carrinho -->
-      <div class="flex flex-1 flex-col gap-1 overflow-y-auto">
+      <div class="flex min-h-0 flex-1 flex-col gap-1">
         @if (cart.length === 0) {
           <p class="py-8 text-center text-sm text-muted-foreground">Nenhum item adicionado.</p>
         } @else {
-          @for (item of cart; track item.productId) {
-            <div class="flex items-center justify-between rounded-md bg-background px-3 py-2 text-sm shadow-xs">
-              <div class="flex flex-col">
-                <span class="font-medium leading-tight">{{ getProductName(item.productId) }}</span>
+
+           <ng-scrollbar hlm appearance="compact" class="h-full">
+          <div class="flex flex-col gap-1 pr-6 pl-3">
+ @for (item of cart; track item.productId) {
+            <div class="flex flex-col gap-1.5 rounded-md bg-background px-3 py-2 text-sm shadow-xs">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5 leading-tight">
+                  <span class="font-medium">{{ getProductName(item.productId) }}</span>
+                  @if (getProductCode(item.productId)) {
+                    <span class="text-muted-foreground text-xs">#{{ getProductCode(item.productId) }}</span>
+                  }
+                </div>
+                <button
+                  hlmBtn
+                  type="button"
+                  size="icon-sm"
+                  variant="ghost"
+                  class="text-destructive hover:text-destructive shrink-0"
+                  [disabled]="saving"
+                  (click)="removeFromCart(item.productId)"
+                >
+                  <ng-icon hlm name="tablerTrash" size="sm" />
+                </button>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <div class="flex items-center rounded-md border">
+                  <button
+                    hlmBtn
+                    type="button"
+                    size="icon-sm"
+                    variant="ghost"
+                    class="rounded-r-none border-r"
+                    [disabled]="saving"
+                    (click)="decrementItem(item.productId)"
+                  >
+                    <ng-icon hlm name="tablerMinus" size="sm" />
+                  </button>
+
+                  <input
+                    type="number"
+                    min="1"
+                    [value]="item.quantity"
+                    [disabled]="saving"
+                    (change)="setItemQuantity(item.productId, $any($event.target).value)"
+                    class="w-10 border-none bg-transparent text-center text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  />
+
+                  <button
+                    hlmBtn
+                    type="button"
+                    size="icon-sm"
+                    variant="ghost"
+                    class="rounded-l-none border-l"
+                    [disabled]="saving"
+                    (click)="incrementItem(item.productId)"
+                  >
+                    <ng-icon hlm name="tablerPlus" size="sm" />
+                  </button>
+                </div>
+
                 <span class="text-muted-foreground text-xs">
-                  {{ item.quantity }} × {{ formatCurrency(getProductPrice(item.productId)) }}
+                  {{ formatCurrency(getProductPrice(item.productId) * item.quantity) }}
                 </span>
               </div>
-              <button
-                hlmBtn
-                type="button"
-                size="icon-sm"
-                variant="ghost"
-                class="text-destructive hover:text-destructive shrink-0"
-                [disabled]="saving"
-                (click)="removeFromCart(item.productId)"
-              >
-                <ng-icon hlm name="tablerTrash" size="sm" />
-              </button>
             </div>
           }
+          </div>
+           </ng-scrollbar>
+         
 
           @if (submitted && cart.length === 0) {
             <p class="text-destructive text-xs">Adicione pelo menos um produto.</p>
@@ -188,17 +235,17 @@
 
       <!-- Total e submit -->
       <div class="grid gap-3 border-t pt-4">
-        <div class="flex items-center justify-between text-sm font-semibold">
+        <div class="flex items-center justify-between text-sm font-semibold pb-6">
           <span>Total</span>
           <span>{{ formatCurrency(cartTotal) }}</span>
         </div>
 
         <div class="grid gap-1">
-          <label hlmLabel for="notes">Observações</label>
+          <label class="pb-3" hlmLabel for="notes">Observações</label>
           <textarea
             id="notes"
             name="notes"
-            rows="2"
+            rows="5"
             [disabled]="saving"
             [(ngModel)]="notes"
             class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex w-full rounded-md border px-3 py-2 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50"
