@@ -41,6 +41,10 @@ export interface EmployeFormResult {
   templateUrl: './employe-form.html',
 })
 export class EmployeForm extends AbstractForm {
+  protected override readonly createSuccessMessage = 'Usuário criado com sucesso.';
+  protected override readonly updateSuccessMessage = 'Usuário atualizado com sucesso.';
+  protected override readonly saveErrorMessage = 'Não foi possível salvar o usuário.';
+
   private readonly dialogContext = injectBrnDialogContext<EmployeFormContext | undefined>({
     optional: true,
   });
@@ -50,7 +54,6 @@ export class EmployeForm extends AbstractForm {
 
   protected readonly roles = [
     { value: 'ADMIN', label: 'Administrador' },
-    { value: 'DEVELOPER', label: 'Desenvolvedor' },
     { value: 'EMPLOYEE', label: 'Funcionário' },
   ];
 
@@ -104,12 +107,18 @@ export class EmployeForm extends AbstractForm {
   }
 
   private getPayload(): UserRequest {
-    return {
+    const password = String(this.dados.password ?? '').trim();
+    const payload: UserRequest = {
       name: this.dados.name.trim(),
       email: this.dados.email.trim(),
-      password: this.dados.password,
       role: this.dados.role,
     };
+
+    if (!this.isEditing || password) {
+      payload.password = password;
+    }
+
+    return payload;
   }
 
   private getEmptyUser() {

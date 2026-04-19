@@ -43,6 +43,10 @@ export interface CustomerFormResult {
   templateUrl: './customer-form.html',
 })
 export class CustomerForm extends AbstractForm {
+  protected override readonly createSuccessMessage = 'Cliente criado com sucesso.';
+  protected override readonly updateSuccessMessage = 'Cliente atualizado com sucesso.';
+  protected override readonly saveErrorMessage = 'Não foi possível salvar o cliente.';
+
   private readonly dialogContext = injectBrnDialogContext<CustomerFormContext | undefined>({
     optional: true,
   });

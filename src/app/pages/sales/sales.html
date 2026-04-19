@@ -6,27 +6,42 @@
     </button>
   </div>
 } @else {
-  <div class="flex h-full gap-0">
+  <hlm-sheet side="right" [state]="cartSheetState" (stateChanged)="setCartSheetState($event)">
+    <div class="flex h-[calc(100svh-3rem)] min-h-0 flex-col gap-4 overflow-hidden p-6">
+      <div class="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <label hlmLabel class="relative w-full max-w-sm">
+          <ng-icon
+            hlm
+            name="tablerSearch"
+            class="text-muted-foreground pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2"
+            size="sm"
+          />
+          <input
+            hlmInput
+            name="search"
+            placeholder="Buscar produto..."
+            class="w-full pl-8"
+            [(ngModel)]="search"
+          />
+        </label>
 
-    <!-- Catálogo de produtos -->
-    <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-6">
-      <label hlmLabel class="relative w-full max-w-sm">
-        <ng-icon
-          hlm
-          name="tablerSearch"
-          class="text-muted-foreground pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2"
-          size="sm"
-        />
-        <input
-          hlmInput
-          name="search"
-          placeholder="Buscar produto..."
-          class="w-full pl-8"
-          [(ngModel)]="search"
-        />
-      </label>
+        <button
+          hlmSheetTrigger
+          hlmBtn
+          type="button"
+          variant="outline"
+          class="flex w-full items-center justify-between gap-3 sm:w-auto"
+        >
+          <span class="inline-flex items-center gap-2">
+            <ng-icon hlm name="tablerShoppingCart" size="sm" />
+            Carrinho
+          </span>
+          <span class="text-muted-foreground text-xs">
+            {{ cartItemCount }} item(s) · {{ formatCurrency(cartTotal) }}
+          </span>
+        </button>
+      </div>
 
-      <!-- Grid -->
       <div class="relative min-h-0 flex-1">
         @if (loadingProducts) {
           <div class="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-background/60">
@@ -39,7 +54,7 @@
             @for (product of filteredProducts; track product.id) {
               <div class="flex flex-col overflow-hidden rounded-lg border transition-shadow hover:shadow-md">
                 <img
-                  src="https://i.imgur.com/9jJHW6p.jpeg"
+                  src="/box.jpg"
                   [alt]="product.name"
                   class="h-32 w-full object-cover"
                 />
@@ -56,7 +71,7 @@
                     hlmBtn
                     type="button"
                     size="sm"
-                    class="w-full"
+                    class="w-full cursor-pointer disabled:cursor-not-allowed"
                     [disabled]="saving"
                     (click)="addToCart(product)"
                   >
@@ -73,8 +88,7 @@
         </ng-scrollbar>
       </div>
 
-      <!-- Paginação -->
-      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex min-h-10 shrink-0 flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
         <span class="text-muted-foreground text-sm">
           {{ numberOfElements }} de {{ totalElements }} produto(s)
         </span>
@@ -128,141 +142,138 @@
       </div>
     </div>
 
-    <!-- Painel do carrinho -->
-    <div class="flex min-h-0 w-72 flex-col gap-4 border-l bg-muted/20 p-4">
-      <h2 class="text-base font-semibold">Carrinho</h2>
+    <hlm-sheet-content *hlmSheetPortal="let ctx" class="w-[92vw] gap-0 p-0 sm:max-w-md">
+      <hlm-sheet-header class="border-b px-4 py-4">
+        <h2 hlmSheetTitle>Carrinho</h2>
+        <p hlmSheetDescription>{{ cartItemCount }} item(s) · {{ formatCurrency(cartTotal) }}</p>
+      </hlm-sheet-header>
 
-      <div class="grid gap-2">
-        <!-- <label hlmLabel for="customerId">Cliente</label> -->
-        <select
-          id="customerId"
-          name="customerId"
-          [disabled]="saving"
-          [(ngModel)]="selectedCustomerId"
-          class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="" disabled>Selecione um cliente</option>
-          @for (customer of customers; track customer.id) {
-            <option [value]="customer.id">{{ customer.name }}</option>
-          }
-        </select>
-        @if (submitted && !selectedCustomerId) {
-          <p class="text-destructive text-xs">Selecione o cliente.</p>
-        }
-      </div>
-
-      <!-- Itens no carrinho -->
-      <div class="flex min-h-0 flex-1 flex-col gap-1">
-        @if (cart.length === 0) {
-          <p class="py-8 text-center text-sm text-muted-foreground">Nenhum item adicionado.</p>
-        } @else {
-
-           <ng-scrollbar hlm appearance="compact" class="h-full">
-          <div class="flex flex-col gap-1 pr-6 pl-3">
- @for (item of cart; track item.productId) {
-            <div class="flex flex-col gap-1.5 rounded-md bg-background px-3 py-2 text-sm shadow-xs">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-1.5 leading-tight">
-                  <span class="font-medium">{{ getProductName(item.productId) }}</span>
-                  @if (getProductCode(item.productId)) {
-                    <span class="text-muted-foreground text-xs">#{{ getProductCode(item.productId) }}</span>
-                  }
-                </div>
-                <button
-                  hlmBtn
-                  type="button"
-                  size="icon-sm"
-                  variant="ghost"
-                  class="text-destructive hover:text-destructive shrink-0"
-                  [disabled]="saving"
-                  (click)="removeFromCart(item.productId)"
-                >
-                  <ng-icon hlm name="tablerTrash" size="sm" />
-                </button>
-              </div>
-
-              <div class="flex items-center justify-between">
-                <div class="flex items-center rounded-md border">
-                  <button
-                    hlmBtn
-                    type="button"
-                    size="icon-sm"
-                    variant="ghost"
-                    class="rounded-r-none border-r"
-                    [disabled]="saving"
-                    (click)="decrementItem(item.productId)"
-                  >
-                    <ng-icon hlm name="tablerMinus" size="sm" />
-                  </button>
-
-                  <input
-                    type="number"
-                    min="1"
-                    [value]="item.quantity"
-                    [disabled]="saving"
-                    (change)="setItemQuantity(item.productId, $any($event.target).value)"
-                    class="w-10 border-none bg-transparent text-center text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                  />
-
-                  <button
-                    hlmBtn
-                    type="button"
-                    size="icon-sm"
-                    variant="ghost"
-                    class="rounded-l-none border-l"
-                    [disabled]="saving"
-                    (click)="incrementItem(item.productId)"
-                  >
-                    <ng-icon hlm name="tablerPlus" size="sm" />
-                  </button>
-                </div>
-
-                <span class="text-muted-foreground text-xs">
-                  {{ formatCurrency(getProductPrice(item.productId) * item.quantity) }}
-                </span>
-              </div>
-            </div>
-          }
-          </div>
-           </ng-scrollbar>
-         
-
-          @if (submitted && cart.length === 0) {
-            <p class="text-destructive text-xs">Adicione pelo menos um produto.</p>
-          }
-        }
-      </div>
-
-      <!-- Total e submit -->
-      <div class="grid gap-3 border-t pt-4">
-        <div class="flex items-center justify-between text-sm font-semibold pb-6">
-          <span>Total</span>
-          <span>{{ formatCurrency(cartTotal) }}</span>
-        </div>
-
-        <div class="grid gap-1">
-          <label class="pb-3" hlmLabel for="notes">Observações</label>
-          <textarea
-            id="notes"
-            name="notes"
-            rows="5"
+      <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
+        <div class="grid gap-2">
+          <select
+            id="customerId"
+            name="customerId"
             [disabled]="saving"
-            [(ngModel)]="notes"
-            class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex w-full rounded-md border px-3 py-2 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50"
-            placeholder="Observações opcionais"
-          ></textarea>
+            [(ngModel)]="selectedCustomerId"
+            class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <option value="" disabled>Selecione um cliente</option>
+            @for (customer of customers; track customer.id) {
+              <option [value]="customer.id">{{ customer.name }}</option>
+            }
+          </select>
+          @if (submitted && !selectedCustomerId) {
+            <p class="text-destructive text-xs">Selecione o cliente.</p>
+          }
         </div>
 
-        <button hlmBtn type="button" class="w-full" [disabled]="saving" (click)="submitSale()">
-          @if (saving) {
-            <hlm-spinner class="mr-2 size-4" aria-label="Registrando venda" />
-            Registrando...
+        <div class="flex min-h-0 flex-1 flex-col gap-1">
+          @if (cart.length === 0) {
+            <p class="py-8 text-center text-sm text-muted-foreground">Nenhum item adicionado.</p>
+            @if (submitted) {
+              <p class="text-destructive text-xs">Adicione pelo menos um produto.</p>
+            }
           } @else {
-            Registrar venda
-          }
-        </button>
-      </div>
-    </div>
+            <ng-scrollbar hlm appearance="compact" class="h-full">
+              <div class="flex flex-col gap-1 pr-6 pl-3">
+                @for (item of cart; track item.productId) {
+                  <div class="flex flex-col gap-1.5 rounded-md bg-background px-3 py-2 text-sm shadow-xs">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-1.5 leading-tight">
+                        <span class="font-medium">{{ getProductName(item.productId) }}</span>
+                        @if (getProductCode(item.productId)) {
+                          <span class="text-muted-foreground text-xs">#{{ getProductCode(item.productId) }}</span>
+                        }
+                      </div>
+                      <button
+                        hlmBtn
+                        type="button"
+                        size="icon-sm"
+                        variant="ghost"
+                        class="text-destructive hover:text-destructive shrink-0"
+                        [disabled]="saving"
+                        (click)="removeFromCart(item.productId)"
+                      >
+                        <ng-icon hlm name="tablerTrash" size="sm" />
+                      </button>
+                    </div>
 
-  </div>
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center rounded-md border">
+                        <button
+                          hlmBtn
+                          type="button"
+                          size="icon-sm"
+                          variant="ghost"
+                          class="rounded-r-none border-r"
+                          [disabled]="saving"
+                          (click)="decrementItem(item.productId)"
+                        >
+                          <ng-icon hlm name="tablerMinus" size="sm" />
+                        </button>
+
+                        <input
+                          type="number"
+                          min="1"
+                          [value]="item.quantity"
+                          [disabled]="saving"
+                          (change)="setItemQuantity(item.productId, $any($event.target).value)"
+                          class="w-10 border-none bg-transparent text-center text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        />
+
+                        <button
+                          hlmBtn
+                          type="button"
+                          size="icon-sm"
+                          variant="ghost"
+                          class="rounded-l-none border-l"
+                          [disabled]="saving"
+                          (click)="incrementItem(item.productId)"
+                        >
+                          <ng-icon hlm name="tablerPlus" size="sm" />
+                        </button>
+                      </div>
+
+                      <span class="text-muted-foreground text-xs">
+                        {{ formatCurrency(getProductPrice(item.productId) * item.quantity) }}
+                      </span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </ng-scrollbar>
+          }
+        </div>
+
+        <div class="grid gap-3 border-t pt-4">
+          <div class="flex items-center justify-between pb-6 text-sm font-semibold">
+            <span>Total</span>
+            <span>{{ formatCurrency(cartTotal) }}</span>
+          </div>
+
+          <div class="grid gap-1">
+            <label class="pb-3" hlmLabel for="notes">Observações</label>
+            <textarea
+              id="notes"
+              name="notes"
+              rows="5"
+              [disabled]="saving"
+              [(ngModel)]="notes"
+              class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex w-full rounded-md border px-3 py-2 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="Observações opcionais"
+            ></textarea>
+          </div>
+
+          <button hlmBtn type="button" class="w-full" [disabled]="saving" (click)="submitSale()">
+            @if (saving) {
+              <hlm-spinner class="mr-2 size-4" aria-label="Registrando venda" />
+              Registrando...
+            } @else {
+              Registrar venda
+            }
+          </button>
+        </div>
+      </div>
+    </hlm-sheet-content>
+  </hlm-sheet>
 }

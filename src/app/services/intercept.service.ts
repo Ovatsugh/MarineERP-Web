@@ -1,20 +1,41 @@
-import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from "@angular/common/http";
+import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpErrorResponse } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
+import { Router } from "@angular/router";
+import { toast } from "@spartan-ng/brain/sonner";
+import { Observable, tap } from "rxjs";
+import { AuthService } from "./auth.service";
 
 @Injectable()
 export class InterceptService implements HttpInterceptor  {
 
-    intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        const token = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJndXNAbWFpbC5jb20iLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3NzU5NTE1OTgsImV4cCI6MTc3NjAzNzk5OH0.A-d82DvX6Zr-OM7zzRzqzVpvfHMEEPeziCLytoObKf0';
+    constructor(private auth: AuthService, private router: Router) {}
 
-        req = req.clone({
-			setHeaders: {
-				// Authorization: `Bearer ${localStorage.getItem(environment.token)}`,
-				Authorization: `Bearer ${token}`,
-			},
-		});
-        return next.handle(req);
+    intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+        const isAuthRequest = req.url.includes('/auth/');
+
+        if (!isAuthRequest) {
+            const token = this.auth.getToken();
+            if (token) {
+                req = req.clone({
+                    setHeaders: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+            }
+        }
+
+        return next.handle(req).pipe(
+            tap({
+                error: (err) => {
+                    if (!isAuthRequest && err instanceof HttpErrorResponse && err.status === 403) {
+                        this.auth.logout();
+                        toast.error('Sessão expirada. Faça login novamente.');
+                        void this.router.navigate(['/auth']);
+                    }
+                    console.error('HTTP Error:', err);
+                },
+            })
+        );
     }
 
 }

@@ -1,0 +1,89 @@
+<div class="grid min-h-svh lg:grid-cols-2">
+  <div class="bg-muted relative hidden overflow-hidden lg:block">
+    <img
+      src="/banner.png"
+      alt=""
+      aria-hidden="true"
+      class="absolute inset-0 h-full w-full object-cover object-[15%_center]"
+    />
+    <div class="absolute inset-0 bg-black/35"></div>
+
+    <div class="relative z-10 flex h-full flex-col justify-between p-10 text-white">
+      <div class="flex items-center gap-2 font-semibold">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-6">
+          <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
+        </svg>
+        <span class="text-lg">MarinERP</span>
+      </div>
+      <blockquote class="space-y-2">
+        <p class="max-w-md text-lg">
+          "Gerencie seu negócio com eficiência e clareza, tudo em um só lugar."
+        </p>
+      </blockquote>
+    </div>
+  </div>
+
+  <div class="flex items-center justify-center p-6 md:p-10">
+    <div class="w-full max-w-xs">
+      <div hlmCard class="border-0 shadow-none">
+        <div hlmCardHeader class="text-center">
+          <p hlmCardTitle class="text-2xl">Bem-vindo</p>
+          <p hlmCardDescription>Faça login com seu e-mail e senha</p>
+        </div>
+
+        <div hlmCardContent>
+          <form #authForm="ngForm" class="grid gap-4" (ngSubmit)="submit(authForm)">
+            <div class="grid gap-2">
+              <label hlmLabel for="email">E-mail</label>
+              <input
+                hlmInput
+                id="email"
+                name="email"
+                type="email"
+                placeholder="voce@exemplo.com"
+                required
+                email
+                [disabled]="loading"
+                [(ngModel)]="dados.email"
+              />
+              @if (authForm.controls['email']?.errors?.['required'] && authForm.controls['email']?.touched) {
+                <p class="text-destructive text-xs">Informe seu e-mail.</p>
+              } @else if (authForm.controls['email']?.errors?.['email'] && authForm.controls['email']?.touched) {
+                <p class="text-destructive text-xs">E-mail inválido.</p>
+              }
+            </div>
+
+            <div class="grid gap-2">
+              <label hlmLabel for="password">Senha</label>
+              <input
+                hlmInput
+                id="password"
+                name="password"
+                type="password"
+                placeholder="••••••••"
+                required
+                minlength="4"
+                [disabled]="loading"
+                [(ngModel)]="dados.password"
+              />
+              @if (authForm.controls['password']?.errors?.['required'] && authForm.controls['password']?.touched) {
+                <p class="text-destructive text-xs">Informe sua senha.</p>
+              }
+            </div>
+
+            @if (error) {
+              <p class="text-destructive text-sm text-center">{{ error }}</p>
+            }
+
+            <button hlmBtn type="submit" class="w-full" [disabled]="loading">
+              @if (loading) {
+                <hlm-spinner class="mr-2 size-4" />
+              }
+              {{ loading ? 'Entrando...' : 'Entrar' }}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

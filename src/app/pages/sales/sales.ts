@@ -1,13 +1,15 @@
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { tablerMinus, tablerPlus, tablerSearch, tablerTrash } from '@ng-icons/tabler-icons';
+import { tablerMinus, tablerPlus, tablerSearch, tablerShoppingCart, tablerTrash } from '@ng-icons/tabler-icons';
+import { toast } from '@spartan-ng/brain/sonner';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmIcon } from '@spartan-ng/helm/icon';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmScrollArea } from '@spartan-ng/helm/scroll-area';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
+import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { NgScrollbar } from 'ngx-scrollbar';
 import { CrudService } from '../../services/crud.service';
@@ -20,10 +22,12 @@ interface CartItem {
   quantity: number;
 }
 
+type SheetState = 'open' | 'closed';
+
 @Component({
   selector: 'app-sales',
-  imports: [HlmButtonImports, HlmInputImports, HlmSpinner, HlmSelectImports, FormsModule, NgIcon, HlmIcon, HlmLabel, NgScrollbar, HlmScrollArea],
-  providers: [provideIcons({ tablerSearch, tablerTrash, tablerMinus, tablerPlus }), CrudService],
+  imports: [HlmButtonImports, HlmInputImports, HlmSpinner, HlmSelectImports, HlmSheetImports, FormsModule, NgIcon, HlmIcon, HlmLabel, NgScrollbar, HlmScrollArea],
+  providers: [provideIcons({ tablerSearch, tablerShoppingCart, tablerTrash, tablerMinus, tablerPlus }), CrudService],
   templateUrl: './sales.html',
   styleUrl: './sales.css',
 })
@@ -43,6 +47,7 @@ export class Sales implements OnInit {
   protected loadingProducts = false;
   protected saving = false;
   protected submitted = false;
+  protected cartSheetState: SheetState = 'closed';
 
   protected page = 0;
   protected readonly pageSize = 12;
@@ -83,6 +88,10 @@ export class Sales implements OnInit {
     }, 0);
   }
 
+  get cartItemCount(): number {
+    return this.cart.reduce((total, item) => total + item.quantity, 0);
+  }
+
   async goToPreviousPage(): Promise<void> {
     if (!this.canGoToPreviousPage) return;
     this.page--;
@@ -108,6 +117,12 @@ export class Sales implements OnInit {
     } else {
       this.cart.push({ productId: product.id, quantity: 1 });
     }
+
+    this.openCartSheet();
+  }
+
+  setCartSheetState(state: SheetState): void {
+    this.cartSheetState = state;
   }
 
   removeFromCart(productId: string): void {
@@ -155,9 +170,25 @@ export class Sales implements OnInit {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value ?? 0);
   }
 
+  private openCartSheet(): void {
+    if (this.cartSheetState === 'closed') {
+      this.cartSheetState = 'open';
+    }
+  }
+
   async submitSale(): Promise<void> {
     this.submitted = true;
-    if (!this.selectedCustomerId || this.cart.length === 0) return;
+
+    if (!this.selectedCustomerId) {
+      toast.warning('Selecione um cliente para registrar a venda.');
+      this.openCartSheet();
+      return;
+    }
+
+    if (this.cart.length === 0) {
+      toast.warning('Adicione pelo menos um produto ao carrinho.');
+      return;
+    }
 
     const payload: SalesRequest = {
       customerId: this.selectedCustomerId,
@@ -169,10 +200,14 @@ export class Sales implements OnInit {
     this.service.path = 'sales';
     try {
       await this.service.create(payload);
+      toast.success('Venda registrada com sucesso.');
       this.cart = [];
       this.selectedCustomerId = '';
       this.notes = '';
       this.submitted = false;
+      this.cartSheetState = 'closed';
+    } catch {
+      toast.error('Não foi possível registrar a venda.');
     } finally {
       this.saving = false;
       this.cdr.detectChanges();

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerEdit, tablerPlus, tablerSearch, tablerTrash } from '@ng-icons/tabler-icons';
+import { toast } from '@spartan-ng/brain/sonner';
 import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmDialogService } from '@spartan-ng/helm/dialog';
@@ -11,6 +12,7 @@ import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { HlmTableImports } from '@spartan-ng/helm/table';
+import { AuthService } from '../../services/auth.service';
 import { CrudService } from '../../services/crud.service';
 import { ToolsService } from '../../services/tools.service';
 import { AbstractList } from '../../shared/abstract-list';
@@ -31,6 +33,7 @@ export class Employes extends AbstractList<UserResponse> implements OnInit {
     service: CrudService,
     tools: ToolsService,
     private readonly dialog: HlmDialogService,
+    private readonly auth: AuthService,
   ) {
     super(service, tools);
     this.service.path = 'admin/users';
@@ -38,6 +41,11 @@ export class Employes extends AbstractList<UserResponse> implements OnInit {
 
   ngOnInit(): void {
     this.initFromUrl();
+    void this.auth.loadCurrentUser().catch(() => undefined);
+  }
+
+  get isAdmin(): boolean {
+    return this.auth.currentUser()?.role === 'ADMIN';
   }
 
   openCreateDialog(): void {
@@ -53,10 +61,15 @@ export class Employes extends AbstractList<UserResponse> implements OnInit {
 
     try {
       await this.service.delete(user.id);
-      await this.getList();
+      toast.success('Usuário excluído com sucesso.');
+    } catch {
+      toast.error('Não foi possível excluir o usuário.');
+      return;
     } finally {
       this.deletingId = null;
     }
+
+    await this.getList();
   }
 
   formatRole(role?: string): string {

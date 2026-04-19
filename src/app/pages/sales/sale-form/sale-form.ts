@@ -43,6 +43,9 @@ export interface SaleFormResult {
   templateUrl: './sale-form.html',
 })
 export class SaleForm extends AbstractForm implements OnInit {
+  protected override readonly createSuccessMessage = 'Venda registrada com sucesso.';
+  protected override readonly saveErrorMessage = 'Não foi possível registrar a venda.';
+
   private readonly dialogRef = inject(BrnDialogRef<SaleFormResult>, {
     optional: true,
   });

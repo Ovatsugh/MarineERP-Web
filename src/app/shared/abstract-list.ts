@@ -1,4 +1,4 @@
-import { inject } from '@angular/core';
+import { ChangeDetectorRef, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CrudService } from "../services/crud.service";
 import { ToolsService } from "../services/tools.service";
@@ -29,10 +29,13 @@ function createEmptyPageResponse<T>(): PageResponse<T> {
 export abstract class AbstractList<T> {
 	private readonly router = inject(Router);
 	private readonly route = inject(ActivatedRoute);
+	private readonly cdr = inject(ChangeDetectorRef);
 	private urlSyncEnabled = false;
 
 	protected readonly defaultSize = 10;
-	protected readonly defaultSort = 'name,asc';
+	protected get defaultSort(): string {
+		return 'name,asc';
+	}
 
 	loading = false;
 	searchTerm = '';
@@ -70,6 +73,7 @@ export abstract class AbstractList<T> {
 		this.filters.size = this.normalizeSize(this.filters.size);
 		this.tools.cleanFilters(this.filters);
 		this.loading = true;
+		this.cdr.markForCheck();
 
 		await this.service
 			.listing(this.filters)
@@ -81,6 +85,7 @@ export abstract class AbstractList<T> {
 			})
 			.finally(() => {
 				this.loading = false;
+				this.cdr.markForCheck();
 			});
 	}
 

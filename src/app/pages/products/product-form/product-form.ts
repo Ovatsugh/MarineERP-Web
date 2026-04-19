@@ -45,6 +45,10 @@ export interface ProductFormResult {
   templateUrl: './product-form.html',
 })
 export class ProductForm extends AbstractForm {
+  protected override readonly createSuccessMessage = 'Produto criado com sucesso.';
+  protected override readonly updateSuccessMessage = 'Produto atualizado com sucesso.';
+  protected override readonly saveErrorMessage = 'Não foi possível salvar o produto.';
+
   private readonly dialogContext = injectBrnDialogContext<ProductFormContext | undefined>({
     optional: true,
   });

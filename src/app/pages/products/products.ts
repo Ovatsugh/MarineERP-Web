@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerEdit, tablerPlus, tablerSearch, tablerTrash } from '@ng-icons/tabler-icons';
+import { toast } from '@spartan-ng/brain/sonner';
 import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmDialogService } from '@spartan-ng/helm/dialog';
@@ -53,10 +54,15 @@ export class Products extends AbstractList<ProductResponse> implements OnInit {
 
     try {
       await this.service.delete(product.id);
-      await this.getList();
+      toast.success('Produto excluído com sucesso.');
+    } catch {
+      toast.error('Não foi possível excluir o produto.');
+      return;
     } finally {
       this.deletingId = null;
     }
+
+    await this.getList();
   }
 
   formatCurrency(value: number): string {

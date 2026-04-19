@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, type OnInit } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
 	tablerChartBar,
@@ -26,10 +26,13 @@ import {
 	tablerUserUp
 	
 } from '@ng-icons/tabler-icons';
+import { toast } from '@spartan-ng/brain/sonner';
 import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmIcon } from '@spartan-ng/helm/icon';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
+import { AuthService } from './services/auth.service';
+import type { UserRole } from './types/user.types';
 
 
 @Component({
@@ -90,7 +93,7 @@ import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 						</div>
 					</div>
 
-					<div hlmSidebarGroup>
+					<!-- <div hlmSidebarGroup>
 						<div hlmSidebarGroupLabel>Documents</div>
 						<div hlmSidebarGroupContent>
 							<ul hlmSidebarMenu>
@@ -125,9 +128,9 @@ import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 								</ng-template>
 							</ul>
 						</div>
-					</div>
+					</div> -->
 
-					<div hlmSidebarGroup class="mt-auto">
+					<!-- <div hlmSidebarGroup class="mt-auto">
 						<div hlmSidebarGroupContent>
 							<ul hlmSidebarMenu>
 								@for (item of _navSecondary; track item.title) {
@@ -140,7 +143,7 @@ import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 								}
 							</ul>
 						</div>
-					</div>
+					</div> -->
 				</div>
 
 				<div hlmSidebarFooter>
@@ -153,11 +156,11 @@ import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 								[hlmDropdownMenuTrigger]="userMenu"
 							>
 								<hlm-avatar class="size-8 rounded-lg">
-									<span class="rounded-lg bg-primary text-primary-foreground" hlmAvatarFallback>MR</span>
+									<span class="rounded-lg bg-primary text-primary-foreground" hlmAvatarFallback>{{ avatarFallback }}</span>
 								</hlm-avatar>
 								<div class="grid flex-1 text-left text-sm leading-tight">
-									<span class="truncate font-medium">{{ _user.name }}</span>
-									<span class="text-muted-foreground truncate text-xs">{{ _user.email }}</span>
+									<span class="truncate font-medium">{{ displayName }}</span>
+									<span class="text-muted-foreground truncate text-xs">{{ displayEmail }}</span>
 								</div>
 								<ng-icon hlm name="tablerDotsVertical" class="ml-auto size-4" />
 							</a>
@@ -168,31 +171,34 @@ import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 							<hlm-dropdown-menu-label class="p-0 font-normal">
 								<div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 									<hlm-avatar class="size-8 rounded-lg">
-										<span class="rounded-lg bg-primary text-primary-foreground" hlmAvatarFallback>MR</span>
+										<span class="rounded-lg bg-primary text-primary-foreground" hlmAvatarFallback>{{ avatarFallback }}</span>
 									</hlm-avatar>
 									<div class="grid flex-1 text-left text-sm leading-tight">
-										<span class="truncate font-medium">{{ _user.name }}</span>
-										<span class="text-muted-foreground truncate text-xs">{{ _user.email }}</span>
+										<span class="truncate font-medium">{{ displayName }}</span>
+										<span class="text-muted-foreground truncate text-xs">{{ displayEmail }}</span>
+										@if (currentUser()?.role) {
+											<span class="text-muted-foreground truncate text-xs">{{ formatRole(currentUser()?.role) }}</span>
+										}
 									</div>
 								</div>
 							</hlm-dropdown-menu-label>
 							<hlm-dropdown-menu-separator />
 							<hlm-dropdown-menu-group>
-								<button hlmDropdownMenuItem>
+								<button hlmDropdownMenuItem class="cursor-pointer" (click)="goToAccount()">
 									<ng-icon hlm name="tablerUserCircle" size="sm" />
 									<span>Account</span>
 								</button>
-								<button hlmDropdownMenuItem>
+								<!-- <button hlmDropdownMenuItem class="cursor-pointer">
 									<ng-icon hlm name="tablerCreditCard" size="sm" />
 									<span>Billing</span>
-								</button>
-								<button hlmDropdownMenuItem>
+								</button> -->
+								<!-- <button hlmDropdownMenuItem class="cursor-pointer">
 									<ng-icon hlm name="tablerNotification" size="sm" />
 									<span>Notifications</span>
-								</button>
+								</button> -->
 							</hlm-dropdown-menu-group>
 							<hlm-dropdown-menu-separator />
-							<button hlmDropdownMenuItem>
+							<button hlmDropdownMenuItem class="cursor-pointer" (click)="logout()">
 								<ng-icon hlm name="tablerLogout" size="sm" />
 								<span>Logout</span>
 							</button>
@@ -204,11 +210,53 @@ import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 		</div>
 	`,
 })
-export class AppSidebar {
-	protected readonly _user = {
-		name: 'Gustavo',
-		email: 'gustavo@marinerp.com',
-	};
+export class AppSidebar implements OnInit {
+	constructor(
+		private readonly auth: AuthService,
+		private readonly router: Router,
+	) {}
+
+	protected get currentUser() {
+		return this.auth.currentUser;
+	}
+
+	ngOnInit(): void {
+		void this.auth.loadCurrentUser().catch(() => undefined);
+	}
+
+	protected logout(): void {
+		this.auth.logout();
+		toast.info('Você saiu da conta.');
+		void this.router.navigate(['/auth']);
+	}
+
+	protected goToAccount(): void {
+		void this.router.navigate(['/account']);
+	}
+
+	protected get displayName(): string {
+		return this.currentUser()?.name || 'Usuário';
+	}
+
+	protected get displayEmail(): string {
+		return this.currentUser()?.email || 'Carregando...';
+	}
+
+	protected get avatarFallback(): string {
+		const words = this.displayName.trim().split(/\s+/).filter(Boolean);
+		const initials = words.slice(0, 2).map((word) => word[0]?.toUpperCase()).join('');
+		return initials || 'U';
+	}
+
+	protected formatRole(role?: UserRole): string {
+		const roles: Record<UserRole, string> = {
+			ADMIN: 'Administrador',
+			DEVELOPER: 'Desenvolvedor',
+			EMPLOYEE: 'Funcionário',
+		};
+
+		return role ? roles[role] : '-';
+	}
 
 	protected readonly _navMain = [
 		{ title: 'Dashboard', url: '', icon: 'tablerDashboard' },

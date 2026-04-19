@@ -58,15 +58,16 @@
 
     <div class="grid gap-3 sm:grid-cols-2">
       <div class="grid content-start gap-2">
-        <label hlmLabel for="password">Senha</label>
+        <label hlmLabel for="password">{{ isEditing ? 'Nova senha' : 'Senha' }}</label>
         <input
           hlmInput
           id="password"
           name="password"
           type="password"
-          required
+          [required]="!isEditing"
           minlength="6"
           [disabled]="saving"
+          [placeholder]="isEditing ? 'Deixe em branco para manter a senha atual' : ''"
           [(ngModel)]="dados.password"
         />
 

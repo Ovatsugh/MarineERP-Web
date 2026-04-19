@@ -5,7 +5,7 @@ export type UserRole = 'ADMIN' | 'DEVELOPER' | 'EMPLOYEE';
 export interface UserRequest {
   name: string;
   email: string;
-  password: string;
+  password?: string;
   role: UserRole;
 }
 

@@ -9,6 +9,12 @@
 @theme inline {
   --font-sans: 'Geist', sans-serif;
 }
+@media (min-width: 1024px) {
+  :root {
+    font-size: 110%;
+  }
+}
+
 
 :root {
   color-scheme: light;
@@ -83,5 +89,18 @@
     @apply bg-background text-foreground font-sans;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  button:not(:disabled):not([data-disabled]),
+  a[hlmSidebarMenuButton],
+  [role='button']:not([aria-disabled='true']):not([data-disabled]) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  button[data-disabled],
+  [role='button'][aria-disabled='true'],
+  [role='button'][data-disabled] {
+    cursor: not-allowed;
   }
 }

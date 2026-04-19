@@ -1,0 +1,85 @@
+<div class="flex h-[calc(100svh-3rem)] min-h-0 flex-col overflow-auto p-6">
+  <div class="mx-auto flex w-full max-w-4xl flex-col gap-6">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold tracking-tight">Conta</h1>
+        <p class="text-muted-foreground text-sm">Seus dados de acesso no MarinERP.</p>
+      </div>
+    </div>
+
+    @if (loading && !currentUser()) {
+      <div hlmCard>
+        <div hlmCardContent class="flex min-h-48 items-center justify-center">
+          <button hlmBtn type="button" variant="outline" size="sm" disabled>
+            <hlm-spinner class="size-4" aria-label="Carregando conta" />
+            <span class="ml-2">Carregando...</span>
+          </button>
+        </div>
+      </div>
+    } @else if (error && !currentUser()) {
+      <div hlmCard>
+        <div hlmCardHeader>
+          <h2 hlmCardTitle>Não foi possível carregar a conta</h2>
+          <p hlmCardDescription>Tente novamente em alguns instantes.</p>
+        </div>
+        <div hlmCardContent>
+          <button hlmBtn type="button" variant="outline" (click)="loadUser(true)">Tentar novamente</button>
+        </div>
+      </div>
+    }
+
+    @if (currentUser(); as user) {
+      <section hlmCard class="overflow-hidden">
+        <div hlmCardHeader class="border-b">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex min-w-0 items-center gap-4">
+              <hlm-avatar class="size-14 rounded-lg">
+                <span class="rounded-lg bg-primary text-lg text-primary-foreground" hlmAvatarFallback>
+                  {{ getInitials(user.name) }}
+                </span>
+              </hlm-avatar>
+              <div class="min-w-0">
+                <h2 hlmCardTitle class="truncate">{{ user.name }}</h2>
+                <p hlmCardDescription class="truncate">{{ user.email }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div hlmCardContent class="grid gap-4 p-6 sm:grid-cols-2">
+          <div class="rounded-md border p-4">
+            <div class="flex items-center gap-2 text-muted-foreground">
+              <ng-icon hlm name="tablerId" size="sm" />
+              <span class="text-xs font-medium uppercase">ID</span>
+            </div>
+            <p class="mt-2 break-all text-sm font-medium">{{ user.id }}</p>
+          </div>
+
+          <div class="rounded-md border p-4">
+            <div class="flex items-center gap-2 text-muted-foreground">
+              <ng-icon hlm name="tablerUserCircle" size="sm" />
+              <span class="text-xs font-medium uppercase">Nome</span>
+            </div>
+            <p class="mt-2 truncate text-sm font-medium">{{ user.name }}</p>
+          </div>
+
+          <div class="rounded-md border p-4">
+            <div class="flex items-center gap-2 text-muted-foreground">
+              <ng-icon hlm name="tablerMail" size="sm" />
+              <span class="text-xs font-medium uppercase">E-mail</span>
+            </div>
+            <p class="mt-2 break-all text-sm font-medium">{{ user.email }}</p>
+          </div>
+
+          <div class="rounded-md border p-4">
+            <div class="flex items-center gap-2 text-muted-foreground">
+              <ng-icon hlm name="tablerShield" size="sm" />
+              <span class="text-xs font-medium uppercase">Perfil</span>
+            </div>
+            <p class="mt-2 text-sm font-medium">{{ formatRole(user.role) }}</p>
+          </div>
+        </div>
+      </section>
+    }
+  </div>
+</div>

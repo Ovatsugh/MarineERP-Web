@@ -1,4 +1,5 @@
 import { PageResponse } from './page.types';
+import { CustomerResponse } from './customer.types';
 
 export interface ItemSaleRequest {
   productId: string;
@@ -13,9 +14,9 @@ export interface SalesRequest {
 
 export interface SalesResponse {
   id: string;
-  customerId: string;
+  customer: CustomerResponse;
   amount: number;
-  notes?: string;
+  notes?: string | null;
 }
 
 export type SalesPageResponse = PageResponse<SalesResponse>;
